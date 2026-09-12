@@ -17,9 +17,6 @@ npm install
 npm run dev        # nodemon, http://localhost:5000
 ```
 
-Requires `.env` (already present) with `MONGO_URI`, `JWT_SECRET`, etc.
-**Rotate the Mongo Atlas password before pushing to a public repo** — it's currently in plaintext in `.env`.
-
 Health check: `GET http://localhost:5000/api/health`
 
 ### API summary
@@ -67,7 +64,4 @@ and activity history.
 logout/me), so `ForgotPasswordScreen` is a working UI stub — wire it to a real endpoint
 once one exists.
 
-## Known follow-ups
-- Add automated tests (unit + integration) — Week 4 buffer item.
-- API Documentation / Database Documentation docs — not yet written.
-- Rotate the Mongo Atlas credentials currently committed in `backend/.env`.
+
