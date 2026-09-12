@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "Plantation Management",
+    "slug": "plantation-management",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.plantation.management",
+      "permissions": ["ACCESS_FINE_LOCATION", "CAMERA", "READ_EXTERNAL_STORAGE"]
+    },
+    "ios": {
+      "bundleIdentifier": "com.plantation.management",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Used to capture plantation GPS coordinates.",
+        "NSCameraUsageDescription": "Used to capture plantation photos.",
+        "NSPhotoLibraryUsageDescription": "Used to attach plantation photos."
+      }
+    }
+  }
+}
