@@ -13,8 +13,8 @@
       "bundleIdentifier": "com.plantation.management",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Used to capture plantation GPS coordinates.",
-        "NSCameraUsageDescription": "Used to capture plantation photos.",
-        "NSPhotoLibraryUsageDescription": "Used to attach plantation photos."
+        "NSCameraUsageDescription": "Used to take plantation photos.",
+        "NSPhotoLibraryUsageDescription": "Used to attach plantation photos from your library."
       }
     }
   }

@@ -22,23 +22,12 @@ export default function PlantationDetailsScreen({ route, navigation }) {
 
   useFocusEffect(load);
 
-  const handlePickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permission needed", "Photo library access is required to upload images");
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: true,
-      quality: 0.7,
-    });
-    if (result.canceled || !result.assets?.length) return;
-
+  const uploadAssets = async (assets) => {
+    if (!assets?.length) return;
     setUploading(true);
     try {
       const formData = new FormData();
-      result.assets.forEach((asset, i) => {
+      assets.forEach((asset, i) => {
         formData.append("images", {
           uri: asset.uri,
           name: `photo_${i}.jpg`,
@@ -51,21 +40,75 @@ export default function PlantationDetailsScreen({ route, navigation }) {
       });
       load();
     } catch (err) {
-      Alert.alert("Upload failed", err.response?.data?.message || "Please try again");
+      Alert.alert(
+        "Upload failed",
+        err.response?.data?.message || "Please try again",
+      );
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleTakePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission needed",
+        "Camera access is required to take a photo",
+      );
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
+    if (result.canceled || !result.assets?.length) return;
+    uploadAssets(result.assets);
+  };
+
+  const handlePickFromLibrary = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission needed",
+        "Photo library access is required to upload images",
+      );
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      quality: 0.7,
+    });
+    if (result.canceled || !result.assets?.length) return;
+    uploadAssets(result.assets);
+  };
+
+  const handleAddPhoto = () => {
+    Alert.alert("Add Photo", "Choose a source", [
+      { text: "Camera", onPress: handleTakePhoto },
+      { text: "Photo Library", onPress: handlePickFromLibrary },
+      { text: "Cancel", style: "cancel" },
+    ]);
   };
 
   if (!data) return <View style={styles.container}><Text>Loading...</Text></View>;
   const { plantation, statistics, location } = data;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ padding: 16 }}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ padding: 16 }}
+    >
       <Text style={styles.name}>{plantation.plantationName}</Text>
-      <Text style={styles.sub}>{plantation.plantationCode} · {plantation.plantationType || "-"}</Text>
+      <Text style={styles.sub}>
+        {plantation.plantationCode} · {plantation.plantationType || "-"}
+      </Text>
 
-      <TouchableOpacity style={styles.editBtn} onPress={() => navigation.navigate("PlantationForm", { id })}>
+      <TouchableOpacity
+        style={styles.editBtn}
+        onPress={() => navigation.navigate("PlantationForm", { id })}
+      >
         <Text style={styles.editBtnText}>Edit Plantation</Text>
       </TouchableOpacity>
 
@@ -97,14 +140,25 @@ export default function PlantationDetailsScreen({ route, navigation }) {
               longitudeDelta: 0.01,
             }}
           >
-            <Marker coordinate={{ latitude: location.latitude, longitude: location.longitude }} />
+            <Marker
+              coordinate={{
+                latitude: location.latitude,
+                longitude: location.longitude,
+              }}
+            />
           </MapView>
         </Section>
       )}
 
       <Section title="Photos">
-        <TouchableOpacity style={styles.gpsBtn} onPress={handlePickImage} disabled={uploading}>
-          <Text style={styles.editBtnText}>{uploading ? "Uploading..." : "+ Add Photos"}</Text>
+        <TouchableOpacity
+          style={styles.gpsBtn}
+          onPress={handleAddPhoto}
+          disabled={uploading}
+        >
+          <Text style={styles.editBtnText}>
+            {uploading ? "Uploading..." : "+ Add Photos"}
+          </Text>
         </TouchableOpacity>
         <FlatList
           data={images}
@@ -114,18 +168,25 @@ export default function PlantationDetailsScreen({ route, navigation }) {
           numColumns={3}
           ListEmptyComponent={<Text style={styles.empty}>No photos yet</Text>}
           renderItem={({ item }) => (
-            <Image source={{ uri: `${API_ROOT}${item.imageUrl}` }} style={styles.thumb} />
+            <Image
+              source={{ uri: `${API_ROOT}${item.imageUrl}` }}
+              style={styles.thumb}
+            />
           )}
         />
       </Section>
 
       <Section title="Activity History">
-        {activities.length === 0 && <Text style={styles.empty}>No activity recorded yet</Text>}
+        {activities.length === 0 && (
+          <Text style={styles.empty}>No activity recorded yet</Text>
+        )}
         {activities.map((a) => (
           <View key={a._id} style={styles.activityRow}>
             <Text style={styles.activityType}>{a.activityType}</Text>
             <Text style={styles.sub}>{a.remarks}</Text>
-            <Text style={styles.activityDate}>{new Date(a.activityDate).toLocaleString()}</Text>
+            <Text style={styles.activityDate}>
+              {new Date(a.activityDate).toLocaleString()}
+            </Text>
           </View>
         ))}
       </Section>

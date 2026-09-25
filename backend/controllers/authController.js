@@ -1,5 +1,7 @@
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
+const crypto = require("crypto");
+const generateResetToken = require("../utils/generateResetToken");
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -146,4 +148,86 @@ const getMe = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, logout, getMe };
+// @desc    Request a password reset — generates a token (in a real deployment
+//          this would be emailed/SMS'd; for now it's returned in the response
+//          so the mobile app / Postman can complete the flow during dev & demo)
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const forgotPassword = async (req, res, next) => {
+  try {
+    const { identifier } = req.body; // mobile number OR email
+    if (!identifier) {
+      return res.status(400).json({ success: false, message: "Mobile number or email is required" });
+    }
+
+    const user = await User.findOne({
+      $or: [{ email: identifier.toLowerCase() }, { mobileNumber: identifier }],
+    });
+
+    // Always respond the same way whether or not the user exists, to avoid
+    // leaking which accounts are registered
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        message: "If an account exists for that mobile number/email, reset instructions have been sent",
+      });
+    }
+
+    const { rawToken, hashedToken } = generateResetToken();
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 minutes
+    await user.save();
+
+    // TODO (production): send `rawToken` via SMS/email instead of returning it.
+    res.status(200).json({
+      success: true,
+      message: "If an account exists for that mobile number/email, reset instructions have been sent",
+      // Dev/demo convenience only — remove `resetToken` from the response once
+      // real SMS/email delivery is wired up:
+      resetToken: rawToken,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Reset password using the token from forgotPassword
+// @route   POST /api/auth/reset-password
+// @access  Public
+const resetPassword = async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) {
+      return res.status(400).json({ success: false, message: "Token and new password are required" });
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    }).select("+resetPasswordToken +resetPasswordExpire");
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: "Reset link is invalid or has expired" });
+    }
+
+    user.password = newPassword; // pre("save") hook hashes it
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    res.status(200).json({ success: true, message: "Password reset successful — please log in" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  register,
+  login,
+  logout,
+  getMe,
+  forgotPassword,
+  resetPassword,
+};
