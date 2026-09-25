@@ -58,9 +58,33 @@ Private. Stateless JWT logout — the endpoint exists for consistency and future
 ### GET `/auth/me`
 Private. Returns the logged-in user's profile (no password).
 
-### POST `/auth/forgot-password`  *(not yet implemented — see note below)*
-### POST `/auth/reset-password`   *(not yet implemented — see note below)*
-> These two endpoints are required to complete the mobile Forgot Password screen. See `docs/PENDING_CHANGES.md` for the ready-to-paste controller, route, and model changes.
+### POST `/auth/forgot-password`
+Public. Looks up the user by mobile number or email and, if found, generates a
+15-minute reset token. Always returns the same success message whether or not
+the account exists, to avoid leaking which accounts are registered.
+
+**Body**
+```json
+{ "identifier": "asha@example.com" }
+```
+**200 response**
+```json
+{
+  "success": true,
+  "message": "If an account exists for that mobile number/email, reset instructions have been sent",
+  "resetToken": "<raw token — dev/demo only, remove once real SMS/email delivery is wired up>"
+}
+```
+
+### POST `/auth/reset-password`
+Public. Resets the password using the token from `forgot-password`.
+
+**Body**
+```json
+{ "token": "<raw token>", "newPassword": "newSecret123" }
+```
+**200** — `{ "success": true, "message": "Password reset successful — please log in" }`
+**400** — token missing/invalid/expired.
 
 ---
 

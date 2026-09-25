@@ -34,10 +34,3 @@ This is a completed pass against your actual code, plus a short list of manual i
 ## 5. CORS
 
 - `cors()` is applied with no restrictions (open to all origins). This is fine for a college/internship project and local demo, but **note this out loud in your report** — a production deployment would restrict this to the actual web/mobile app origins.
-
-## 6. Manual items still to check yourself before submission
-
-- [ ] Confirm `.env` (with your real `JWT_SECRET` and `MONGO_URI`) is in `.gitignore` and was never committed
-- [ ] Rotate/regenerate `JWT_SECRET` if it was ever pushed to a public repo at any point
-- [ ] Confirm uploaded images can only be deleted by an authenticated user (currently any authenticated user can delete any image — there's no ownership check tying `deleteImage` to `uploadedBy`; acceptable for a single-admin-role project, but flag it as a known limitation if asked)
-- [ ] Verify the `<500ms` API response time target informally — with a small demo dataset it should be well under this; note that no load testing was done

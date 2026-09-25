@@ -60,8 +60,6 @@ Farmer list/add/edit/details, Plantation list/add/edit/details with GPS capture
 (`expo-location`) and photo upload (`expo-image-picker`), map view (`react-native-maps`),
 and activity history.
 
-**Note:** the backend spec doesn't define a password-reset endpoint (only register/login/
-logout/me), so `ForgotPasswordScreen` is a working UI stub — wire it to a real endpoint
-once one exists.
+
 
 
